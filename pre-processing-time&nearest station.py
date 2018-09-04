@@ -1,0 +1,259 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Sep  2 13:47:07 2018
+
+@author: liumo
+"""
+
+import pandas as pd
+import csv
+bst={}
+with open('bike_pair_traveltime.csv') as f:
+    reader=csv.reader(f)
+    next(reader)
+    for row in reader:
+        bst[int(row[1]),int(row[2])]=float(row[3])
+
+with open('bike_pair_traveltime_3000_for_NA.csv','w') as f:
+    f.write('ori,dest,duration\n')
+    for i in stationlist:
+        for j in stationlist:
+            if (i,j) in bst.keys():
+                f.write(str(i)+','+str(j)+','+str(bst[i,j])+'\n')
+            else:
+                f.write(str(i)+','+str(j)+',3000\n')
+
+stationlist=set()
+for i,j in bst.keys():
+    stationlist.add(i)
+    stationlist.add(j)
+len(stationlist) 
+stationlist=list(sorted(stationlist))   
+stationlist[0]
+closest={}
+dist={}    
+for i in stationlist:
+    for j in stationlist:
+        if (i,j) in bst.keys():
+            if i not in closest.keys():
+                closest[i]=j
+                dist[i]=bst[i,j]
+            elif dist[i] > bst[i,j]:
+                closest[i]=j
+                dist[i]=bst[i,j]
+            if j not in closest.keys():
+                closest[j]=i
+                dist[j]=bst[i,j]
+            elif dist[j] > bst[i,j]:
+                closest[j]=i
+                dist[j]=bst[i,j]
+                
+                
+                
+                
+f = open("closest_bike_station.txt","w")
+f.write( str(closest) )
+f.close()                        
+
+
+closest=eval(open(('closest_bike_station.txt')).read())
+
+missing=[]
+for i in stationlist:
+    for j in stationlist:
+        if (i,j) not in bst.keys():
+            missing.append((i,j))
+            
+            
+missingstationlist=set()
+for (i,j) in missing:
+    missingstationlist.add(i)
+    missingstationlist.add(j)
+    
+len(missingstationlist)
+    
+sum(bst.values())/len(bst)            
+
+#use 3000 to replace the missing data
+
+f = open("bike_station_time.txt","w")
+f.write( str(bst) )
+f.close()
+
+duration=eval(open(('bike_station_time.txt')).read())
+closest=eval(open(('closest_bike_station.txt')).read())
+cap={}
+with open('bikestationcap.csv') as f:
+    reader=csv.reader(f) 
+    for row in reader:
+        cap[int(row[0])]=int(row[1])                   
+num_bike_each_station={}
+num_ebike_each_station={}
+ecap={}
+for i in cap.keys():
+    num_bike_each_station[i]=round(cap[i]*0.5)
+    ecap[i]=round(cap[i]*0.2)
+    num_ebike_each_station[i]=round(cap[i]*0.05)
+    
+cap
+ecap            
+num_ebike_each_station
+           
+f = open("bikestationcap.txt","w")
+f.write( str(cap) )
+f.close()
+f = open("bikestation_ecap.txt","w")
+f.write( str(ecap) )
+f.close()
+f = open("initial_bike.txt","w")
+f.write( str(num_bike_each_station) )
+f.close()
+f = open("initial_ebike.txt","w")
+f.write( str(num_ebike_each_station) )
+f.close()
+
+allocation_dis={}
+for i in stationlist:
+    if i not in al.index:
+        print(i)
+        allocation_dis[i]=0
+    else:
+        allocation_dis[i]=al.loc[i,'allocation']
+    
+    
+    
+travel={}
+for i in cap.keys():
+    for j in cap.keys():
+        travel[i,j]=1/len(cap)
+
+f = open("allocation.txt","w")
+f.write( str(allocation_dis) )
+f.close()
+
+f = open("travel_matrix.txt","w")
+f.write( str(travel) )
+f.close()
+
+allocation=eval(open(('allocation.txt')).read())
+allocation
+
+
+stations={}
+for i in cap.keys():
+    temp={}
+    temp['cap']=cap[i]
+    temp['ecap']=ecap[i]
+    temp['bike']=num_bike_each_station[i]
+    temp['ebike']=num_ebike_each_station[i]
+    stations[i]=temp
+    
+    
+    
+f = open("stations_initial.txt","w")
+f.write( str(stations) )
+f.close()
+
+travel={}
+for i in cap.keys():
+    temp={}
+    for j in cap.keys():
+        temp[j]=1/len(cap)
+    travel[i]=temp
+        
+
+import sched
+
+import pandas as pd
+
+citi5=pd.read_csv('../citibike-tripdata.csv/201706-citibike-tripdata.csv')
+citi2=pd.read_csv('../citibike-tripdata.csv/201707-citibike-tripdata.csv')
+citi3=pd.read_csv('../citibike-tripdata.csv/201708-citibike-tripdata.csv')
+citi4=pd.read_csv('../citibike-tripdata.csv/201709-citibike-tripdata.csv')
+
+
+citi5=citi5.append(citi2)
+citi5=citi5.append(citi3)
+citi5=citi5.append(citi4)
+citi5=citi5.drop(columns=['tripduration',  'stoptime', 
+       'start station name', 'start station latitude',
+       'start station longitude',  'end station name',
+       'end station latitude', 'end station longitude', 'bikeid', 'usertype',
+       'birth year', 'gender'])
+citi1=citi5.reset_index()
+citi1.to_csv('../citibike-tripdata.csv/before_delete.csv')
+del citi1['index']
+len(citi1) # 7161789
+for i in range(len(citi1)):
+    if i < 4776303:
+        continue
+    if (citi1.loc[i,'start'] not in stationlist) or \
+    (citi1.loc[i,'end'] not in stationlist):
+        citi1=citi1.drop(i)
+    if i % 100000 == 0:
+        print(i/7161789)
+citi1.to_csv('../citibike-tripdata.csv/after_delete.csv')
+JCciti=pd.read_csv('../JC-citibike-tripdata/combine1.csv')
+JCciti.columns=['starttime','start','end']
+citi1.to_csv()
+citi=citi1.append(JCciti)
+citi=citi.reset_index()
+del citi['index']
+citi.to_csv('combine_JC.csv')
+citi1=citi
+al=citi1.groupby('start').count()
+total=sum(al['starttime'])
+for i in al.index:
+    al.loc[i,'allocation']=float(al.loc[i,'starttime']/total)
+al.to_csv('allocation.csv')
+citi1.columns=['starttime','start','end']  
+travel={}  
+for i in stationlist:
+    print(i)
+    if i not in al.index:
+        print(i)
+        continue
+    temp={}
+    k=citi1[citi1.start==i]
+    k=k.groupby('end').count()
+    if i not in k.index:
+        total1=sum(k['start'])
+    else:
+        total1=sum(k['start'])-k.loc[i,'start']
+    for j in stationlist:
+        if j ==i:
+            temp[j]=0
+        elif j in k.index:
+            temp[j]=k.loc[j,'start']/total1
+        else:
+            temp[j]=0
+    travel[i]=temp
+
+
+## demand rate
+    
+citi1
+hour=pd.read_csv('combine_JC_hours.csv')
+len(hour[(hour.starttime==0)|(hour.starttime==1)|(hour.starttime==2)|(hour.starttime==3)|(hour.starttime==4)|(hour.starttime==5)\
+     |(hour.starttime==6)|(hour.starttime==23)|(hour.starttime==22)]  )
+# 94881
+9*3600*4*30/96881    # 40.13170797163531
+
+len(hour)-94881
+#     953694
+15*3600*4*30/953694 # 6.794632240529982
+
+6.794632240529982/40.13170797163531
+
+rate=[]
+for i in range(24):
+    rate.append(3600*4*30/len(hour[hour.starttime==i]))
+    
+    
+import matplotlib.pyplot as plt
+plt.plot(rate)
+plt.scatter(range(24),rate)
+plt.ylabel('demand interval in seconds')
+plt.xlabel('time')
+plt.title('demand rate in one day')
+plt.savefig('demand rate in one day',dpi=300)
