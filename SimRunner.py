@@ -74,7 +74,7 @@ with open('three_trip_error.csv','w') as f:
         f.write(str(i.bike)+','+str(i.start_t)+','+str(i.end_t)+','+str(i.start_st)+','+str(i.end_st)+'\n')
 
 
-with open('alltrips.csv','w') as f:
+with open('data/alltrips.csv','w') as f:
     f.write('bike,start_time,end_time,start_st,end_st\n')
     for i in  gc.trips:
         f.write(str(gc.trips[i].bike)+','+str(gc.trips[i].start_t)+','+str(gc.trips[i].end_t)+','+str(gc.trips[i].start_st)+','+str(gc.trips[i].end_st)+'\n')

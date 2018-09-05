@@ -18,7 +18,7 @@ travel_matrix=eval(open(('travel_matrix.txt')).read())
 closest=eval(open(('closest_bike_station.txt')).read())
 import csv
 bst={}
-with open('bike_pair_traveltime_3000_for_NA.csv') as f:
+with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
     reader=csv.reader(f)
     next(reader)
     for row in reader:
@@ -158,6 +158,7 @@ def Origin_generate(globalclock):
         delta_t=td(seconds=np.random.exponential(gc.demand_rate))
         start_t= gc.t+delta_t
         if int(start_t.hour) in {22,23,24,0,1,2,3,4,5,6}:
+            #print(str(start_t.hour))
             flip=int(np.random.binomial(1,gc.lambda_rate,1))
             if flip==1:
                 Isgenerate=True
