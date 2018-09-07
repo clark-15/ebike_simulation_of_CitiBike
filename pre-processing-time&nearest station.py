@@ -180,10 +180,17 @@ citi5=citi5.drop(columns=['tripduration',  'stoptime',
        'start station longitude',  'end station name',
        'end station latitude', 'end station longitude', 'bikeid', 'usertype',
        'birth year', 'gender'])
+    
+len(citi1)/30/4
+
+#Out: 59681.575
+
 citi1=citi5.reset_index()
 citi1.to_csv('../citibike-tripdata.csv/before_delete.csv')
 del citi1['index']
-len(citi1) # 7161789
+len(citi5) # 7161789
+
+
 for i in range(len(citi1)):
     if i < 4776303:
         continue
@@ -193,10 +200,21 @@ for i in range(len(citi1)):
     if i % 100000 == 0:
         print(i/7161789)
 citi1.to_csv('../citibike-tripdata.csv/after_delete.csv')
+citi1=pd.read_csv('../citibike-tripdata.csv/after_delete.csv')
+len(citi1)
 JCciti=pd.read_csv('../JC-citibike-tripdata/combine1.csv')
 JCciti.columns=['starttime','start','end']
-citi1.to_csv()
+citi1.columns=['index','starttime','start','end']
+
+
+
+del citi1['index']
 citi=citi1.append(JCciti)
+
+len(citi)/30/4
+Out[107]: 60306.9
+
+
 citi=citi.reset_index()
 del citi['index']
 citi.to_csv('combine_JC.csv')
@@ -233,7 +251,125 @@ for i in stationlist:
 ## demand rate
     
 citi1
-hour=pd.read_csv('combine_JC_hours.csv')
+int(citi.loc[1000,'starttime'][11:13])
+
+def weekDay(month, day):
+    year=2017
+    offset = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    afterFeb = 1
+    if month > 2: afterFeb = 0
+    aux = year - 1700 - afterFeb
+    # dayOfWeek for 1700/1/1 = 5, Friday
+    dayOfWeek  = 5
+    # partial sum of days betweem current date and 1700/1/1
+    dayOfWeek += (aux + afterFeb) * 365                  
+    # leap year correction    
+    dayOfWeek += aux / 4 - aux / 100 + (aux + 100) / 400     
+    # sum monthly and day offsets
+    dayOfWeek += offset[month - 1] + (day - 1)             
+    dayOfWeek %= 7
+    
+    return int(dayOfWeek)
+
+weekDay(7,31)
+# 0 is Sunday
+with open('hours_combine_week.csv','a') as f:
+    #f.write('week,starthours,start,destination\n')
+    for i in range(len(citi)):
+        if i < 7161746: continue
+        if i < 7161746:
+            month=int(citi.loc[i,'starttime'][5:7])
+            day=int(citi.loc[i,'starttime'][8:10])
+            f.write(str(weekDay(month,day))+',')
+            f.write(str(int(citi.loc[i,'starttime'][11:13]))+',')
+            f.write(str(citi.loc[i,'start'])+',')
+            f.write(str(citi.loc[i,'end'])+'\n')
+            
+        else:
+            month=int(citi.loc[i,'starttime'][5:6])
+            day=int(citi.loc[i,'starttime'][7:9])
+            f.write(str(weekDay(month,day))+',')
+            f.write(str(int(citi.loc[i,'starttime'][-5:-3]))+',')
+            f.write(str(citi.loc[i,'start'])+',')
+            f.write(str(citi.loc[i,'end'])+'\n')
+        if i % 100000 ==0:
+            print(i/7236828)
+    
+    
+
+hours=pd.read_csv('hours_combine_week.csv')
+demand_interval={}
+for i in range(24):
+    hor=hours[hours.starthours==i]
+    for weekday in range(7):
+        #print(weekday)
+        al={}
+        dest_m={}
+        day=hor[hor.week==weekday]
+        interval=3600*4*4/len(day)
+        demand_interval[i,weekday]=interval
+        total=len(day)
+        alloc=day.groupby('start').count()
+        
+        for station in alloc.index:
+            al[station]=alloc.loc[station,'destination']/total
+            start_m=day[day.start==station]
+            dest_count=start_m.groupby('destination').count()
+            total_dest=len(start_m)
+            temp={}
+            for dest in dest_count.index:
+                temp[dest]=dest_count.loc[dest,'start']/total_dest
+            dest_m[station]=temp
+        print('finish counting, beging writing',i,weekday)
+        f = open('allocation_'+str(i)+'_'+str(weekday)+'.txt',"w")
+        f.write( str(al) )
+        f.close()
+        f = open('dest_matrix_'+str(i)+'_'+str(weekday)+'.txt',"w")
+        f.write( str(dest_m) )
+        f.close()
+
+f = open('demand_rate.txt',"w")
+f.write( str(demand_interval) )
+f.close()    
+                
+    
+import matplotlib.pyplot as plt
+interval=eval(open(('demand_rate.txt')).read())
+mini=min(interval.values())
+rate={}
+for i,j in interval.keys():
+    rate[i,j]=mini/interval[i,j]
+
+f = open('data/demand_ratio.txt',"w")
+f.write( str(rate) )
+f.close()   
+
+
+
+week   = ['Sunday', 
+              'Monday', 
+              'Tuesday', 
+              'Wednesday', 
+              'Thursday',  
+              'Friday', 
+              'Saturday']
+i = 6
+demand_day=[]
+for j in range(24):
+    demand_day.append(1/rate[j,i]*3600)
+plt.plot(demand_day)
+plt.scatter(range(24),demand_day)
+plt.ylabel('number of demand in one hour')
+plt.xlabel('time')
+plt.title('demand rate on '+str(week[i]))
+plt.xticks(range(24))
+plt.savefig('data/demand rate on '+str(week[i]),dpi=300)
+
+
+
+sum(dest_m[3635].values())
+
+
 len(hour[(hour.starttime==0)|(hour.starttime==1)|(hour.starttime==2)|(hour.starttime==3)|(hour.starttime==4)|(hour.starttime==5)\
      |(hour.starttime==6)|(hour.starttime==23)|(hour.starttime==22)]  )
 # 94881
@@ -248,12 +384,18 @@ len(hour)-94881
 rate=[]
 for i in range(24):
     rate.append(3600*4*30/len(hour[hour.starttime==i]))
+
+
+rate=[]
+for i in range(24):
+    rate.append(len(hour[hour.starttime==i])/(4*30))
     
     
 import matplotlib.pyplot as plt
 plt.plot(rate)
 plt.scatter(range(24),rate)
-plt.ylabel('demand interval in seconds')
+plt.ylabel('number of demand in one hour')
 plt.xlabel('time')
 plt.title('demand rate in one day')
-plt.savefig('demand rate in one day',dpi=300)
+plt.xticks(range(24))
+plt.savefig('demand rate in one day',dpi=300,bbox_inches='tight')

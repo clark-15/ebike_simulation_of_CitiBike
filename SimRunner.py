@@ -1,3 +1,11 @@
+'''
+\u5982\u679c\u672a\u6765\u8fd8\u6709\u4ea4\u96c6\uff0c\u90a3\u65f6\u6211\u4e00\u5b9a\u4e0d\u4f1a\u653e\u5f03
+the runner of simulation of ebikes
+
+'''
+
+
+
 import SimData
 from datetime import timedelta as td
 from datetime import datetime as time

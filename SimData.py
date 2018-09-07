@@ -11,18 +11,26 @@ import heapq
 import numpy as np
 from datetime import timedelta as td
 #from datetime import datetime as time
-allocation=eval(open(('allocation.txt')).read())
-
-travel_matrix=eval(open(('travel_matrix.txt')).read())
+allocation={}
+travel_matrix={}
+lambda_rate={}
+for i in range(24):
+    for j in range(7):
+        allocation[i,j]=eval(open(('matrix_data/allocation_'+str(i)+'_'+str(j)+'.txt')).read())
+        travel_matrix[i,j]=eval(open(('matrix_data/dest_matrix_'+str(i)+'_'+str(j)+'.txt')).read())
+        lambda_rate=eval(open(('matrix_data/demand_ratio.txt')).read())
 
 closest=eval(open(('closest_bike_station.txt')).read())
 import csv
 bst={}
-with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
+with open('bike_pair_traveltime_3000_for_NA.csv') as f:
     reader=csv.reader(f)
     next(reader)
     for row in reader:
         bst[int(row[0]),int(row[1])]=float(row[2])
+weeks={}
+for i in range(50):
+    weeks[i]=False
 
 class Event(object):
 
@@ -95,10 +103,10 @@ class GlobalClock(object):
     '''
     records the simulation
     '''
-    #  one demand every 5 second  i.e. 1/lambda = 5
-    demand_rate=6.794632240529982
+    #  minimum interval time : 0.4608848028037159
+    demand_rate=0.4608848028037159
     # thinning method, it can be time-varying
-    lambda_rate = 0.16930832461285625
+    #lambda_rate = 0.16930832461285625
     def __init__(self, start_time,end_time, initial_stations):
 
         self.start_time = start_time
@@ -114,6 +122,17 @@ class GlobalClock(object):
         self.three_trip_error=[]
         self.bike_return_full=[]
         self.ebike_return_full=[]
+        self.week = 0
+        self.week_demandlost={}
+        self.week_three_trip_error={}
+        self.week_bike_return_full={}
+        self.week_ebike_return_full={}
+        self.week_demandlost[0]=0
+        self.week_three_trip_error[0]=0
+        self.week_bike_return_full[0]=0
+        self.week_ebike_return_full[0]=0
+        
+        
         
         for i in initial_stations.keys():
             bikelist={}
@@ -138,6 +157,17 @@ class GlobalClock(object):
             next_event=heapq.heappop(self.heap)
             self.t=next_event.time
             #print(self.t)
+            if (self.t- self.start_time).days % 7==0:
+                self.week = ((self.t- self.start_time).days // 7)
+                if weeks[self.week]==False:
+                    print(self.t)
+                    self.week_demandlost[self.week+1]=len(self.demandlost)-sum(self.week_demandlost.values())
+                    self.week_three_trip_error[self.week+1]=len(self.three_trip_error)-sum(self.week_three_trip_error.values())
+                    self.week_bike_return_full[self.week+1]=len(self.bike_return_full)-sum(self.week_bike_return_full.values())
+                    self.week_ebike_return_full[self.week+1]=len(self.ebike_return_full)-sum(self.week_ebike_return_full.values())
+                    weeks[self.week]= True
+                
+            
             if next_event.code ==0: # means start
                 trip_generate(self,next_event)
                 Origin_generate(self,)
@@ -157,21 +187,15 @@ def Origin_generate(globalclock):
     while(Isgenerate==False):
         delta_t=td(seconds=np.random.exponential(gc.demand_rate))
         start_t= gc.t+delta_t
-        if int(start_t.hour) in {22,23,24,0,1,2,3,4,5,6}:
-            #print(str(start_t.hour))
-            flip=int(np.random.binomial(1,gc.lambda_rate,1))
-            if flip==1:
-                Isgenerate=True
-                origin=int(np.random.choice(list(allocation.keys()),1,True,list(allocation.values())))
-                event=Event(Event.START,start_t,origin)
-                heapq.heappush(gc.heap,event)
-                
-        else:
-            #print(gc.t)
+        week_day=start_t.weekday()
+        flip=int(np.random.binomial(1,lambda_rate[start_t.hour,week_day],1))
+        if flip==1:
             Isgenerate=True
-            origin=int(np.random.choice(list(allocation.keys()),1,True,list(allocation.values())))
+            origin=int(np.random.choice(list(allocation[start_t.hour,week_day].keys()),1,True,list(allocation[start_t.hour,week_day].values())))
             event=Event(Event.START,start_t,origin)
             heapq.heappush(gc.heap,event)
+                
+       
             
             
 def trip_generate(globalclock,next_event):
@@ -184,7 +208,8 @@ def trip_generate(globalclock,next_event):
             ebike_avaliable = True
             ebikeid=gc.stations[stationid].ebike[j].id
             break
-    dest=int(np.random.choice(list(allocation.keys()),1,True,list(travel_matrix[stationid].values())))
+    week_day=gc.t.weekday()
+    dest=int(np.random.choice(list(travel_matrix[gc.t.hour,week_day][stationid].keys()),1,True,list(travel_matrix[gc.t.hour,week_day][stationid].values())))
     if len(gc.stations[stationid].bike) ==0 and ebike_avaliable==False:
         gc.stations[stationid].tripsFailedOut.append(next_event)
         gc.demandlost.append(next_event)
@@ -278,6 +303,7 @@ def return_ebike(globalclock,tripid,stationid):
         gc.stations[stationid].tripsFailedIn.append(gc.trips[tripid])
         if gc.bikes[ebikeid].trip_times > 2:
             gc.three_trip_error.append(gc.trips[tripid])
+            print(gc.t,'three')
         else:
             gc.bikes[ebikeid].trip_times += 1
             dest=closest[stationid]
