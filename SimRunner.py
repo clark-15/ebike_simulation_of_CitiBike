@@ -17,6 +17,30 @@ initial_stations=eval(open(("stations_initial.txt")).read())
 gc=SimData.GlobalClock(start_time,end_time,initial_stations)
 
 gc.clockAdvance()
+len(gc.demandlost)
+sum(gc.week_demandlost.values())
+gc.week_demandlost
+gc.week_three_trip_error
+gc.week_bike_return_full
+gc.week_ebike_return_full
+
+import matplotlib.pyplot as plt
+
+di=gc.week_demandlost
+di=gc.week_three_trip_error
+di=gc.week_bike_return_full
+di = gc.week_ebike_return_full
+
+a=list(di.values())
+b=list(di.keys())
+plt.scatter(b,a)
+plt.plot(b,a)
+plt.xlabel('week')
+s='demand lost in a week'
+plt.ylabel(s)
+plt.savefig(s,dpi=300)
+
+
 percent=[]
 epercent=[]
 for i in gc.stations.keys():
