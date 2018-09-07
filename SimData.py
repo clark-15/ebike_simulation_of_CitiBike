@@ -23,7 +23,7 @@ for i in range(24):
 closest=eval(open(('closest_bike_station.txt')).read())
 import csv
 bst={}
-with open('bike_pair_traveltime_3000_for_NA.csv') as f:
+with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
     reader=csv.reader(f)
     next(reader)
     for row in reader:

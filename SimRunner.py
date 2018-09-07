@@ -10,7 +10,7 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 7)
-end_time=start_time+ td(days=3)
+end_time=start_time+ td(weeks=3)
 initial_stations=eval(open(("stations_initial.txt")).read())
 
 
