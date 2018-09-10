@@ -1,5 +1,6 @@
 '''
-\u5982\u679c\u672a\u6765\u8fd8\u6709\u4ea4\u96c6\uff0c\u90a3\u65f6\u6211\u4e00\u5b9a\u4e0d\u4f1a\u653e\u5f03
+\u613f\u672a\u6765\u6211\u4eec\u8fd8\u6709\u4ea4\u96c6\uff0c\u90a3\u65f6\u6211\u4e00\u5b9a\u4e0d\u4f1a\u653e\u5f03
+
 the runner of simulation of ebikes
 
 '''
@@ -10,15 +11,23 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 7)
-end_time=start_time+ td(weeks=3)
+end_time=start_time+ td(weeks=20)
 initial_stations=eval(open(("stations_initial.txt")).read())
 
 
 gc=SimData.GlobalClock(start_time,end_time,initial_stations)
 
 gc.clockAdvance()
+
+import pickle
+gc=pickle.load(open('gc_20weeks.pickle','rb'))
+
 len(gc.demandlost)
 sum(gc.week_demandlost.values())
+
+
+
+
 gc.week_demandlost
 gc.week_three_trip_error
 gc.week_bike_return_full
