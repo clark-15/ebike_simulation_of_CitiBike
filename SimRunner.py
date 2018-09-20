@@ -1,5 +1,4 @@
 '''
-\u613f\u672a\u6765\u6211\u4eec\u8fd8\u6709\u4ea4\u96c6\uff0c\u90a3\u65f6\u6211\u4e00\u5b9a\u4e0d\u4f1a\u653e\u5f03
 
 the runner of simulation of ebikes
 
@@ -11,7 +10,7 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 7)
-end_time=start_time+ td(weeks=20)
+end_time=start_time+ td(weeks=10)
 initial_stations=eval(open(("stations_initial.txt")).read())
 
 
@@ -19,9 +18,33 @@ gc=SimData.GlobalClock(start_time,end_time,initial_stations)
 
 gc.clockAdvance()
 
-import pickle
-gc=pickle.load(open('gc_20weeks.pickle','rb'))
+#import pickle
+#gc=pickle.load(open('../gc_20weeks.pickle','rb'))
 
+
+
+#-------analyze the result------------
+num,enum=0,0
+for i in gc.stations.keys():
+    num += len(gc.stations[i].bike)
+    enum += len(gc.stations[i].ebike)
+
+
+# num: 2769
+
+# enum: 356
+cap,ecap = 0,0
+for i in gc.stations.keys():
+    cap += gc.stations[i].bike_cap
+    ecap += gc.stations[i].ebike_cap
+cap/2 # 12657
+
+ecap /2 # 2534.5 
+
+len(gc.bikes)-num-enum
+
+(len(gc.trips)-len(gc.bike_return_full)-len(gc.ebike_return_full))/70
+len(gc.trips)/70
 len(gc.demandlost)
 sum(gc.week_demandlost.values())
 
@@ -61,18 +84,18 @@ import matplotlib.pyplot as plt
 plt.hist(percent,bins=99,range=(0,1))
 plt.xlabel('number of bike / capacity of bike station')
 plt.ylabel('frequency')
-plt.title('the distribution of bikes initial')
+plt.title('the distribution of bikes 20 weeks')
 plt.xlim(0,1)
-plt.savefig('the distribution of bikes initial',dpi=300)
+plt.savefig('the distribution of bikes 20 weeks',dpi=300)
 
 #
 
 plt.hist(epercent,bins=99,range=(0,1))
 plt.xlabel('number of ebike / capacity of ebike docks')
 plt.ylabel('frequency')
-plt.title('the distribution of ebikes initial')
+plt.title('the distribution of ebikes 20 weeks')
 plt.xlim(0,1)
-plt.savefig('the distribution of ebikes initial',dpi=300)
+plt.savefig('the distribution of ebikes 20 weeks',dpi=300)
 
 
 len(gc.bike_return_full)
@@ -80,6 +103,28 @@ len(gc.ebike_return_full)
 len(gc.three_trip_error)
 len(gc.demandlost)
 
+y=gc.week_demandlost.values()
+x=gc.week_demandlost.keys()
+plt.scatter(x,y)
+plt.plot(x,y)
+
+
+y=gc.week_three_trip_error.values()
+x=gc.week_three_trip_error.keys()
+plt.scatter(x,y)
+plt.plot(x,y)
+
+
+y=gc.week_bike_return_full.values()
+x=gc.week_bike_return_full.keys()
+plt.scatter(x,y)
+plt.plot(x,y)
+
+
+y=gc.week_ebike_return_full.values()
+x=gc.week_ebike_return_full.keys()
+plt.scatter(x,y)
+plt.plot(x,y)
 
 
 def simulate(start_time,end_time,initial_stations, times):
@@ -117,39 +162,9 @@ with open('three_trip_error.csv','w') as f:
 
 with open('data/alltrips.csv','w') as f:
     f.write('bike,start_time,end_time,start_st,end_st\n')
-    for i in  gc.trips:
+    for i in  list(gc.trips.keys())[:200000]:
         f.write(str(gc.trips[i].bike)+','+str(gc.trips[i].start_t)+','+str(gc.trips[i].end_t)+','+str(gc.trips[i].start_st)+','+str(gc.trips[i].end_st)+'\n')
 
 
 
 
-
-
-class Event(object):
-
-    # code
-    START = 0
-    END = 1
-	# event1 = Event(Event.START, t, st)
-    def __init__(self, code, time, station, tripid=None):
-        
-        self.time = time
-        self.station = station
-        self.code = code
-        self.tripid = tripid
-    ##
-    # We are compared on 'time' field which is the next time
-    # the simulation must process something
-    ##
-    def __lt__(self, other):
-        return self.time < other.time
-'''    
-event1=Event(0,start_time,97)
-event2=Event(0,start_time+td(seconds=1),97)
-event3=Event(0,start_time+td(seconds=2),97)
-import heapq
-heap=[]
-heapq.heappush(heap,event1)
-heapq.heappush(heap,event2)
-heapq.heappush(heap,event3)
-'''

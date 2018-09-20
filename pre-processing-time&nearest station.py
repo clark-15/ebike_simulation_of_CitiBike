@@ -8,7 +8,7 @@ Created on Sun Sep  2 13:47:07 2018
 import pandas as pd
 import csv
 bst={}
-with open('bike_pair_traveltime.csv') as f:
+with open('data/bike_pair_traveltime.csv') as f:
     reader=csv.reader(f)
     next(reader)
     for row in reader:
@@ -334,7 +334,7 @@ f.close()
                 
     
 import matplotlib.pyplot as plt
-interval=eval(open(('demand_rate.txt')).read())
+interval=eval(open(('../mand_rate.txt')).read())
 mini=min(interval.values())
 rate={}
 for i,j in interval.keys():
@@ -399,3 +399,30 @@ plt.xlabel('time')
 plt.title('demand rate in one day')
 plt.xticks(range(24))
 plt.savefig('demand rate in one day',dpi=300,bbox_inches='tight')
+
+
+
+
+
+
+import csv
+bst={}
+with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
+    reader=csv.reader(f)
+    next(reader)
+    for row in reader:
+        bst[int(row[0]),int(row[1])]=float(row[2])
+
+station_rankby_dist={}        
+for station in stationlist:
+    temp={}
+    for i, j in bst:
+        if i==station:
+          temp[j]=bst[i,j]
+    rank=sorted(temp,key=temp.get)
+    station_rankby_dist[station]=rank
+    print(station)
+f = open('data/station_rankby_dist.txt',"w")
+f.write( str(station_rankby_dist) )
+f.close()   
+

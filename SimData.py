@@ -21,6 +21,8 @@ for i in range(24):
         lambda_rate=eval(open(('matrix_data/demand_ratio.txt')).read())
 
 closest=eval(open(('closest_bike_station.txt')).read())
+station_rankby_dist=eval(open(('data/station_rankby_dist.txt')).read())
+
 import csv
 bst={}
 with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
@@ -28,6 +30,9 @@ with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
     next(reader)
     for row in reader:
         bst[int(row[0]),int(row[1])]=float(row[2])
+        
+        
+        
 weeks={}
 for i in range(50):
     weeks[i]=False
@@ -184,9 +189,10 @@ class GlobalClock(object):
 def Origin_generate(globalclock):
     gc=globalclock
     Isgenerate=False
+    start_t = gc.t
     while(Isgenerate==False):
         delta_t=td(seconds=np.random.exponential(gc.demand_rate))
-        start_t= gc.t+delta_t
+        start_t += delta_t
         week_day=start_t.weekday()
         flip=int(np.random.binomial(1,lambda_rate[start_t.hour,week_day],1))
         if flip==1:
@@ -306,7 +312,13 @@ def return_ebike(globalclock,tripid,stationid):
             print(gc.t,'three')
         else:
             gc.bikes[ebikeid].trip_times += 1
-            dest=closest[stationid]
+            #print(station_rankby_dist[stationid])
+            for next_dest in station_rankby_dist[stationid]:
+                #print(ebikeid,next_dest)
+                if len(gc.stations[next_dest].ebike) < gc.stations[next_dest].ebike_cap:
+                    dest=next_dest
+                    
+                    break
             generate_ebike_trip(gc,stationid,dest,ebikeid,pickupebike=False)
         
         
@@ -323,9 +335,13 @@ def return_bike(globalclock,tripid,stationid):
         gc.stations[stationid].tripsFailedIn.append(gc.trips[tripid])
         if gc.bikes[bikeid].trip_times > 2:
             gc.three_trip_error.append(gc.trips[tripid])
+            #print(gc.t,'three')
         else:
             gc.bikes[bikeid].trip_times += 1
-            dest=closest[stationid]
+            for next_dest in station_rankby_dist[stationid]:
+                if len(gc.stations[next_dest].bike) < gc.stations[next_dest].bike_cap:
+                    dest=next_dest
+                    break
             generate_bike_trip(gc,stationid,dest,bikeid)
     
 
