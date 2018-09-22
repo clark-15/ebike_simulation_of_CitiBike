@@ -10,7 +10,7 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 7)
-end_time=start_time+ td(weeks=10)
+end_time=start_time+ td(weeks=20)
 initial_stations=eval(open(("stations_initial.txt")).read())
 
 
@@ -43,8 +43,8 @@ ecap /2 # 2534.5
 
 len(gc.bikes)-num-enum
 
-(len(gc.trips)-len(gc.bike_return_full)-len(gc.ebike_return_full))/70
-len(gc.trips)/70
+(len(gc.trips)-len(gc.bike_return_full)-len(gc.ebike_return_full))/140
+len(gc.trips)/140
 len(gc.demandlost)
 sum(gc.week_demandlost.values())
 
@@ -104,28 +104,76 @@ len(gc.three_trip_error)
 len(gc.demandlost)
 
 y=gc.week_demandlost.values()
-x=gc.week_demandlost.keys()
+s='lost demand'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title('number of '+str(s)+' in a week VS week')
+plt.savefig(s,dpi=300,bbox_inches='tight')
+
+
 
 
 y=gc.week_three_trip_error.values()
-x=gc.week_three_trip_error.keys()
+s='three-trip-error'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title('number of '+str(s)+' in a week VS week')
+plt.savefig(s,dpi=300,bbox_inches='tight')
+
+
+
+
 
 
 y=gc.week_bike_return_full.values()
-x=gc.week_bike_return_full.keys()
+s='bike return error'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title('number of '+str(s)+' in a week VS week')
+plt.savefig(s,dpi=300,bbox_inches='tight')
+
+
 
 
 y=gc.week_ebike_return_full.values()
-x=gc.week_ebike_return_full.keys()
+s='ebike return error'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title('number of '+str(s)+' in a week VS week')
+plt.savefig(s,dpi=300,bbox_inches='tight')
 
+
+
+
+# stateafter 20 weeks
+from copy import deepcopy
+stations_20weeks=deepcopy(initial_stations)
+for i in gc.stations.keys():
+    stations_20weeks[i]['bike']=len(gc.stations[i].bike)
+    stations_20weeks[i]['ebike']=len(gc.stations[i].ebike)
+
+import pickle
+pickle.dump(stations_20weeks,open('stations_20weeks.pickle','wb'))
 
 def simulate(start_time,end_time,initial_stations, times):
     bike_return_full=[]

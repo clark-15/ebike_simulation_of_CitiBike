@@ -334,7 +334,7 @@ f.close()
                 
     
 import matplotlib.pyplot as plt
-interval=eval(open(('../mand_rate.txt')).read())
+interval=eval(open(('../demand_rate.txt')).read())
 mini=min(interval.values())
 rate={}
 for i,j in interval.keys():
