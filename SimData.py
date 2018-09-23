@@ -269,7 +269,10 @@ def generate_ebike_trip(globalclock,stationid,dest,ebikeid,pickupebike=True):
     speed_ratio=2/3
     duration=td(seconds=bikingtime*np.random.lognormal(0,sigma)*speed_ratio)
     end_time=gc.t+duration
-    
+    if gc.bikes[ebikeid].SOC < 99:
+        charge_rate=0.000124
+        new_SOC=gc.bikes[ebikeid].SOC+(gc.t-gc.bikes[ebikeid].lastchargetime).seconds*charge_rate
+        gc.bikes[ebikeid].SOC=min(100,new_SOC)
     energy_per_second=0.000124 # SOC / second
     energy=duration.total_seconds()*energy_per_second
     end_SOC=max(0,gc.bikes[ebikeid].SOC-energy)
@@ -299,7 +302,7 @@ def return_ebike(globalclock,tripid,stationid):
     ebikeid=gc.trips[tripid].bike
     if len(gc.stations[stationid].ebike) < gc.stations[stationid].ebike_cap :
         gc.stations[stationid].ebike[ebikeid]=gc.bikes[ebikeid]
-        gc.bikes[ebikeid].SOC=100
+        # gc.bikes[ebikeid].SOC=100
         gc.bikes[ebikeid].lastchargetime=gc.t
         gc.stations[stationid].tripsIn.append(gc.trips[tripid])
         gc.bikes[ebikeid].trip_times=0
