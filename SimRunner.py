@@ -10,8 +10,9 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 7)
-end_time=start_time+ td(weeks=20)
+end_time=start_time+ td(weeks=40)
 initial_stations=eval(open(("stations_initial.txt")).read())
+
 
 
 gc=SimData.GlobalClock(start_time,end_time,initial_stations)
@@ -23,16 +24,43 @@ gc.clockAdvance()
 
 
 
+
 #-------analyze the result------------
+time_hour=end_time
+end_hour=time_hour+td(hours=1)
+
+gc1=SimData.GlobalClock(time_hour,end_hour,stations_20weeks)
+
+for hours in range(24):
+    gc1.clockAdvance()
+    with open(str(gc1.end_time.strftime('%m-%d-%Y_%H_%M_%S'))+'_bike.csv','w') as f:
+        f.write('stationid,num_of_bike_dividedby_bike_capacity\n')
+        for i in gc1.stations.keys():
+            if gc1.stations[i].bike_cap != 0:
+                f.write(str(i)+',')
+                f.write(str(len(gc1.stations[i].bike)/gc1.stations[i].bike_cap)+'\n')
+                
+    with open(str(gc1.end_time.strftime('%m-%d-%Y_%H_%M_%S'))+'_ebike.csv','w') as f:
+        f.write('stationid,num_of_ebike_dividedby_ebike_capacity\n')
+        for i in gc1.stations.keys():
+            if gc1.stations[i].ebike_cap != 0:
+                f.write(str(i)+',')
+                f.write(str(len(gc1.stations[i].ebike)/gc1.stations[i].ebike_cap)+'\n')
+        
+    gc1.end_time += td(hours=1)
+
+
+
 num,enum=0,0
 for i in gc.stations.keys():
     num += len(gc.stations[i].bike)
     enum += len(gc.stations[i].ebike)
 
 
-# num: 2769
+# num: 12613
 
-# enum: 356
+# enum: 1243
+    
 cap,ecap = 0,0
 for i in gc.stations.keys():
     cap += gc.stations[i].bike_cap
@@ -86,7 +114,7 @@ plt.xlabel('number of bike / capacity of bike station')
 plt.ylabel('frequency')
 plt.title('the distribution of bikes 20 weeks')
 plt.xlim(0,1)
-plt.savefig('the distribution of bikes 20 weeks',dpi=300)
+plt.savefig('the distribution of bikes 20 weeks_recycle_bike',dpi=300)
 
 #
 
@@ -95,7 +123,7 @@ plt.xlabel('number of ebike / capacity of ebike docks')
 plt.ylabel('frequency')
 plt.title('the distribution of ebikes 20 weeks')
 plt.xlim(0,1)
-plt.savefig('the distribution of ebikes 20 weeks',dpi=300)
+plt.savefig('the distribution of ebikes 20 weeks_recycle_bike',dpi=300)
 
 
 len(gc.bike_return_full)
@@ -104,31 +132,31 @@ len(gc.three_trip_error)
 len(gc.demandlost)
 
 y=gc.week_demandlost.values()
-s='lost demand'
+s='lost demand (out-of-battery_delay)'
 y=list(y)[2:]
 x=range(1,len(y)+1)
-plt.xticks(x,x)
+#plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
 plt.ylabel('number of '+str(s)+' in a week')
 plt.xlabel('week')
 plt.title('number of '+str(s)+' in a week VS week')
-plt.savefig(s,dpi=300,bbox_inches='tight')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
 
 
 
 
 y=gc.week_three_trip_error.values()
-s='three-trip-error'
+s='three-trip-error (out-of-battery_delay)'
 y=list(y)[2:]
 x=range(1,len(y)+1)
-plt.xticks(x,x)
+#plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
 plt.ylabel('number of '+str(s)+' in a week')
 plt.xlabel('week')
 plt.title('number of '+str(s)+' in a week VS week')
-plt.savefig(s,dpi=300,bbox_inches='tight')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
 
 
 
@@ -136,22 +164,38 @@ plt.savefig(s,dpi=300,bbox_inches='tight')
 
 
 y=gc.week_bike_return_full.values()
-s='bike return error'
+s='bike return error (out-of-battery_delay)'
 y=list(y)[2:]
 x=range(1,len(y)+1)
-plt.xticks(x,x)
+#plt.xticks(x,x)
 plt.scatter(x,y)
 plt.plot(x,y)
 plt.ylabel('number of '+str(s)+' in a week')
 plt.xlabel('week')
 plt.title('number of '+str(s)+' in a week VS week')
-plt.savefig(s,dpi=300,bbox_inches='tight')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
 
 
 
 
 y=gc.week_ebike_return_full.values()
-s='ebike return error'
+s='ebike return error (out-of-battery_delay)'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+#plt.xticks(x,x)
+plt.scatter(x,y)
+plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title('number of '+str(s)+' in a week VS week')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
+
+
+y1=list(gc.week_ebike_return_full.values())
+y2=list(gc.week_bike_return_full.values())
+y3=list(gc.week_demandlost.values())
+y=list(map(lambda x,y,z: x+y+z , y1,y2,y3))
+s='total unhappy event (out-of-battery_delay)'
 y=list(y)[2:]
 x=range(1,len(y)+1)
 plt.xticks(x,x)
@@ -160,8 +204,40 @@ plt.plot(x,y)
 plt.ylabel('number of '+str(s)+' in a week')
 plt.xlabel('week')
 plt.title('number of '+str(s)+' in a week VS week')
-plt.savefig(s,dpi=300,bbox_inches='tight')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
 
+
+y=gc.week_average_SOC.values()
+s='everage State of Charge(SOC)'
+y=list(y)[2:]
+x=range(1,len(y)+1)
+plt.xticks(x,x)
+plt.scatter(x,y)
+plt.plot(x,y)
+plt.ylabel('number of '+str(s)+' in a week')
+plt.xlabel('week')
+plt.title(str(s)+' in a week VS week')
+plt.savefig(s+'recycle_bike',dpi=300,bbox_inches='tight')
+
+
+
+
+SOC=[]
+for ei in gc.bikes.keys():
+    if gc.bikes[ei].isebike==True:
+         SOC.append(gc.bikes[ei].SOC)
+
+
+
+
+plt.hist(SOC,bins=99,log=True)
+plt.title('distribution of SOC after 40 weeeks')
+plt.ylabel('number of bikes (log scaled)')
+plt.xlabel('SOC')
+plt.axvline(x=30,color='red')
+plt.savefig('distribution of SOC after 40 weeeks',dpi=300,bbox_inches='tight')
+
+len(SOC)
 
 
 
