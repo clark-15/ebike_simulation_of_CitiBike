@@ -230,7 +230,7 @@ for ei in gc.bikes.keys():
 
 
 
-plt.hist(SOC,bins=99,log=True)
+plt.hist(SOC,bins=99,range=(0,100),log=True)
 plt.title('distribution of SOC after 40 weeeks')
 plt.ylabel('number of bikes (log scaled)')
 plt.xlabel('SOC')
@@ -240,6 +240,23 @@ plt.savefig('distribution of SOC after 40 weeeks',dpi=300,bbox_inches='tight')
 len(SOC)
 
 
+len(gc.trips)
+outofbatterytrip=0
+etrip = 0
+for i in gc.trips.keys():
+    if gc.trips[i].end_SOC != None:
+        etrip += 1
+    if gc.trips[i].end_SOC==0:
+        outofbatterytrip += 1
+        
+etrip
+etrip/len(gc.trips) 
+outofbatterytrip/etrip
+
+(gc.bike_return_full)/(len(gc.trips)-etrip)
+(gc.ebike_return_full)/(etrip)
+
+gc.demandlost/(len(gc.trips)+gc.demandlost)
 
 # stateafter 20 weeks
 from copy import deepcopy
@@ -285,9 +302,10 @@ with open('three_trip_error.csv','w') as f:
 
 
 with open('data/alltrips.csv','w') as f:
-    f.write('bike,start_time,end_time,start_st,end_st\n')
+    f.write('bike,start_time,end_time,start_st,end_st,start_SOC,end_SOC\n')
     for i in  list(gc.trips.keys())[:200000]:
-        f.write(str(gc.trips[i].bike)+','+str(gc.trips[i].start_t)+','+str(gc.trips[i].end_t)+','+str(gc.trips[i].start_st)+','+str(gc.trips[i].end_st)+'\n')
+        if gc.trips[i].end_SOC != None:
+            f.write(str(gc.trips[i].bike)+','+str(gc.trips[i].start_t)+','+str(gc.trips[i].end_t)+','+str(gc.trips[i].start_st)+','+str(gc.trips[i].end_st)+','+str(gc.trips[i].start_SOC)+','+str(gc.trips[i].end_SOC)+'\n')
 
 
 
