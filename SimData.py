@@ -32,10 +32,6 @@ with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
         bst[int(row[0]),int(row[1])]=float(row[2])
         
         
-        
-weeks={}
-for i in range(100):
-    weeks[i]=False
 
 class Event(object):
 
@@ -135,7 +131,7 @@ class GlobalClock(object):
         self.week_average_SOC = {}
         self.threshold = 30
         self.charge_rate=0.009259259
-        self.energy_per_second=0.0124
+        self.energy_per_second=0.01984127
         self.out_of_battery = 0
         self.week_num_etrip={}
         self.week_num_etrip[0]=0
@@ -143,7 +139,10 @@ class GlobalClock(object):
         self.week_num_alltrip={}
         self.week_num_alltrip[0]=0
         self.week_average_SOC[0]=100
-        
+                
+        self.weeks={}
+        for i in range(100):
+            self.weeks[i]=False
         
         
         for i in initial_stations.keys():
@@ -173,13 +172,17 @@ class GlobalClock(object):
         
         
     def clockAdvance(self,):
+        #print('start simulation')
         while(self.t <= self.end_time):
             next_event=heapq.heappop(self.heap)
             self.t=next_event.time
             #print(self.t)
+            #print('day:',(self.t- self.start_time).days)
+            #print('week: ',self.week)
             if (self.t- self.start_time).days % 7==0:
                 self.week = ((self.t- self.start_time).days // 7)
-                if weeks[self.week]==False:
+                if self.weeks[self.week]==False:
+                    #print((self.t- self.start_time).days)
                     print(self.t,self.week)
                     self.week_demandlost[self.week+1]=self.demandlost-sum(self.week_demandlost.values())
                     self.week_three_trip_error[self.week+1]=len(self.three_trip_error)-sum(self.week_three_trip_error.values())
@@ -188,7 +191,7 @@ class GlobalClock(object):
                     self.week_out_of_battery[self.week+1]=self.out_of_battery-sum(self.week_out_of_battery.values())
                     self.week_num_etrip[self.week+1]=self.num_etrip-sum(self.week_num_etrip.values())
                     self.week_num_alltrip[self.week+1]=len(self.trips)-sum(self.week_num_alltrip.values())
-                    weeks[self.week]= True
+                    self.weeks[self.week]= True
                     total_SOC = 0
                     for ei in self.bikes.keys():
                         if self.bikes[ei].isebike==True:
