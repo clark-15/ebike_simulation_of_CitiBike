@@ -256,15 +256,12 @@ def trip_generate(globalclock,next_event):
             break
     week_day=gc.t.weekday()
     dest=int(np.random.choice(list(travel_matrix[gc.t.hour,week_day][stationid].keys()),1,True,list(travel_matrix[gc.t.hour,week_day][stationid].values())))
-    if len(gc.stations[stationid].bike) ==0 and ebike_avaliable==False:
+    if ebike_avaliable==False:
         #gc.stations[stationid].tripsFailedOut.append(next_event)
         #gc.demandlost.append(next_event)
         gc.demandlost += 1
         
-    elif ebike_avaliable==False: # demand is bike
-        generate_bike_trip(gc,stationid,dest)       
-        
-        
+  
     else:# len(gc.stations[stationid].bike) ==0: # demand is ebike
         generate_ebike_trip(gc,stationid,dest,ebikeid)
         gc.num_etrip += 1
@@ -328,13 +325,8 @@ def return_generate(globalclock,next_event):
     gc=globalclock
     stationid=next_event.station
     tripid=next_event.tripid
-    bid=gc.trips[tripid].bike
-    if gc.bikes[bid].isebike:
-        return_ebike(gc,tripid,stationid)
-    else:
-        return_bike(gc,tripid,stationid)
-
-
+    return_ebike(gc,tripid,stationid)
+    
 
 
 
