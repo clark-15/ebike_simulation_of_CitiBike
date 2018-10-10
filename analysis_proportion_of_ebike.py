@@ -7,7 +7,7 @@ import scipy.stats
 
 
 
-a= pd.read_csv('simdata/propotion_of_bike_0.1.csv')
+a= pd.read_csv('simdata_ebike_allebike/simdata_ebike/propotion_of_ebike_0.7.csv')
 
 a.columns
 plt.plot(a.week,a.bike_return_error)
@@ -26,23 +26,21 @@ def mean_confidence_interval(data, confidence=0.95):
     h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
     return m, h
 
-
-error=[]
-for column in ['bike_return_error', 'ebike_return_error', 'lost_demand',
+['bike_return_error', 'ebike_return_error', 'lost_demand',
        'three_error', 'out_of_battery', 'average_SOC', 'ebike_trips',
-       'all_trips']:
+       'all_trips']
     
     
     
-propotion_of_bike_list=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] 
+propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7] 
 bike_return_error=[]
 bike_return_error_st=[]
 for proportion in  propotion_of_bike_list:
-    s='simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
+    s='simdata_ebike_allebike/simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
     a= pd.read_csv(s)
-    b=list(a.ebike_return_error/a.ebike_trips)[15:]
+    b=list(a.ebike_return_error+a.lost_demand+a.out_of_battery)[15:]
     average_five_week  = []
-    for i in range(12):
+    for i in range(7):
         average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
     mean, error=mean_confidence_interval(average_five_week)
     bike_return_error.append(mean)

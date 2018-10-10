@@ -12,7 +12,7 @@ import scipy.stats
 
 
 
-a= pd.read_csv('simdata/propotion_of_bike_0.1.csv')
+a= pd.read_csv('simdata/propotion_of_bike_all_bike0.1.csv')
 
 a.columns
 plt.plot(a.week,a.bike_return_error)
@@ -33,9 +33,9 @@ def mean_confidence_interval(data, confidence=0.95):
 
 
 error=[]
-for column in ['bike_return_error', 'ebike_return_error', 'lost_demand',
+['bike_return_error', 'ebike_return_error', 'lost_demand',
        'three_error', 'out_of_battery', 'average_SOC', 'ebike_trips',
-       'all_trips']:
+       'all_trips']
     
     
     
@@ -43,20 +43,20 @@ propotion_of_bike_list=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 bike_return_error=[]
 bike_return_error_st=[]
 for proportion in  propotion_of_bike_list:
-    s='simdata/propotion_of_bike_'+str(proportion)+'.csv'
+    s='simdata/propotion_of_bike_all_bike'+str(proportion)+'.csv'
     a= pd.read_csv(s)
-    b=list(a.bike_return_error)[15:]
+    b=list(a.bike_return_error+a.lost_demand)[25:]
     average_five_week  = []
-    for i in range(12):
+    for i in range(10):
         average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
     mean, error=mean_confidence_interval(average_five_week)
     bike_return_error.append(mean)
     bike_return_error_st.append(error)
 plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,ecolor='red',capsize=3)    
 plt.xlabel('initial ratio of bikes to docks')
-plt.ylabel('number of bike return error')
-plt.title('bike return error VS number of bikes\n 12 batches, each batch lasts 5 weeks')
-plt.savefig('bike return error VS number of bikes',dpi = 300,bbox_inches='tight')
+plt.ylabel('number of out-of-event error')
+plt.title('number of out-of-event VS number of bikes\n all demands are bikes')
+plt.savefig('simdata/number of out-of-event VS number of bikes_all_bike',dpi = 300,bbox_inches='tight')
 
 
 propotion_of_bike_list=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] 
