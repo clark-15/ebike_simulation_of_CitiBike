@@ -114,11 +114,13 @@ class GlobalClock(object):
         self.stations = {}
         self.imagecount = 0
         self.demandlost=0
+        self.demandlost_causedby_battery=0
         self.three_trip_error=[]
         self.bike_return_full=0
         self.ebike_return_full=0
         self.week = 0
         self.week_demandlost={}
+        self.week_demandlost_causedby_battery={}
         self.week_three_trip_error={}
         self.week_bike_return_full={}
         self.week_ebike_return_full={}
@@ -139,6 +141,7 @@ class GlobalClock(object):
         self.week_num_alltrip={}
         self.week_num_alltrip[0]=0
         self.week_average_SOC[0]=100
+        self.week_demandlost_causedby_battery[0]=0
                 
         self.weeks={}
         for i in range(100):
@@ -191,6 +194,7 @@ class GlobalClock(object):
                     self.week_out_of_battery[self.week+1]=self.out_of_battery-sum(self.week_out_of_battery.values())
                     self.week_num_etrip[self.week+1]=self.num_etrip-sum(self.week_num_etrip.values())
                     self.week_num_alltrip[self.week+1]=len(self.trips)-sum(self.week_num_alltrip.values())
+                    self.week_demandlost_causedby_battery[self.week+1]=self.demandlost_causedby_battery-sum(self.week_demandlost_causedby_battery.values())
                     self.weeks[self.week]= True
                     total_SOC = 0
                     for ei in self.bikes.keys():
@@ -260,6 +264,8 @@ def trip_generate(globalclock,next_event):
         #gc.stations[stationid].tripsFailedOut.append(next_event)
         #gc.demandlost.append(next_event)
         gc.demandlost += 1
+        if len(gc.stations[stationid].ebike)>0:
+            gc.demandlost_causedby_battery += 1
         
     elif ebike_avaliable==False: # demand is bike
         generate_bike_trip(gc,stationid,dest)       

@@ -36,7 +36,7 @@ propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7]
 bike_return_error=[]
 bike_return_error_st=[]
 for proportion in  propotion_of_bike_list:
-    s='simdata_ebike_allebike/simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
+    s='simdata_ebike(1)_higher_rate/simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
     a= pd.read_csv(s)
     b=list(a.ebike_return_error+a.lost_demand+a.out_of_battery)[15:]
     average_five_week  = []
@@ -47,10 +47,10 @@ for proportion in  propotion_of_bike_list:
     bike_return_error_st.append(error)
 plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,ecolor='red',capsize=3)    
 plt.xlabel('initial ratio of ebikes to edocks')
-plt.ylabel('number of bike return error')
-plt.title('bike return error VS number of ebikes\n 12 batches, each batch lasts 5 weeks')
+plt.ylabel('number of out-of-event')
+plt.title('number of out-of-events VS number of ebikes\n all demands are ebikes')
 
-plt.savefig('simdata_ebike/bike return error VS number of ebikes',dpi = 300,bbox_inches='tight')
+plt.savefig('simdata_ebike_allebike/simdata_ebike/number of out-of-events VS number of ebikes',dpi = 300,bbox_inches='tight')
 
 
 

@@ -10,7 +10,7 @@ import SimData
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 18)
-end_time=start_time+ td(weeks=40)
+end_time=start_time+ td(weeks=20)
 initial_stations=eval(open(("stations_initial.txt")).read())
 
 
@@ -235,7 +235,7 @@ plt.title('distribution of SOC after 40 weeeks')
 plt.ylabel('number of bikes (log scaled)')
 plt.xlabel('SOC')
 plt.axvline(x=30,color='red')
-plt.savefig('distribution of SOC after 40 weeeks',dpi=300,bbox_inches='tight')
+plt.savefig('distribution of SOC after 20 weeeks',dpi=300,bbox_inches='tight')
 
 len(SOC)
 

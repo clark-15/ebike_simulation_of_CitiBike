@@ -12,8 +12,10 @@ import scipy.stats
 
 
 
-a= pd.read_csv('simdata/propotion_of_bike_all_bike0.1.csv')
-
+a= pd.read_csv('simdata/propotion_of_bike_all_bike0.4.csv')
+b=list((a.lost_demand_causedby_battery/a.lost_demand))
+plt.scatter(a.week,b)
+plt.ylim(0,0.001)
 a.columns
 plt.plot(a.week,a.bike_return_error)
 plt.plot(a.week,a.ebike_return_error)
@@ -39,24 +41,94 @@ error=[]
     
     
     
-propotion_of_bike_list=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] 
+propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7] 
 bike_return_error=[]
 bike_return_error_st=[]
 for proportion in  propotion_of_bike_list:
     s='simdata/propotion_of_bike_all_bike'+str(proportion)+'.csv'
     a= pd.read_csv(s)
-    b=list(a.bike_return_error+a.lost_demand)[25:]
+    b=list((a.lost_demand))[15:]
+    average_five_week  = []
+    for i in range(7):
+        average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
+    mean, error=mean_confidence_interval(average_five_week)
+    bike_return_error.append(mean)
+    bike_return_error_st.append(error)
+plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,ecolor='red',capsize=3,label = 'bike')    
+plt.xlabel('initial ratio of bikes to docks')
+plt.ylabel('demand loss rate (bike)')
+plt.title('demand loss rate (bike)')
+
+###delte later
+
+propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7] 
+bike_return_error=[]
+bike_return_error_st=[]
+for proportion in  propotion_of_bike_list:
+    s='simdata_ebike_allebike/simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
+    a= pd.read_csv(s)
+    b=list((a.ebike_return_error))[15:]
+    average_five_week  = []
+    for i in range(7):
+        average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
+    mean, error=mean_confidence_interval(average_five_week)
+    bike_return_error.append(mean)
+    bike_return_error_st.append(error)
+plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,c='orange',ecolor='red',capsize=3,label = 'ebike')    
+plt.xlabel('initial ratio of (e)bikes to (e)docks')
+ty='return error'
+plt.ylabel('number of '+ty)
+plt.legend()
+plt.title('number of '+ty+' VS number of ebikes ')
+
+
+plt.savefig('number of '+ty+' VS number of ebikes before increasing arrival rate',dpi = 300,bbox_inches='tight')
+
+
+
+propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7] 
+bike_return_error=[]
+bike_return_error_st=[]
+for proportion in  propotion_of_bike_list:
+    s='simdata/propotion_of_bike_all_bike'+str(proportion)+'.csv'
+    a= pd.read_csv(s)
+    b=list((a.lost_demand+a.bike_return_error))[25:]
     average_five_week  = []
     for i in range(10):
         average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
     mean, error=mean_confidence_interval(average_five_week)
     bike_return_error.append(mean)
     bike_return_error_st.append(error)
-plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,ecolor='red',capsize=3)    
+plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,c= 'orange',ecolor='red',capsize=3) 
 plt.xlabel('initial ratio of bikes to docks')
-plt.ylabel('number of out-of-event error')
-plt.title('number of out-of-event VS number of bikes\n all demands are bikes')
-plt.savefig('simdata/number of out-of-event VS number of bikes_all_bike',dpi = 300,bbox_inches='tight')
+plt.ylabel('demand loss rate (bike)')
+plt.title('demand loss rate (bike)')
+
+   
+
+
+ 
+propotion_of_bike_list=[0.3,0.4,0.5,0.6,0.7] 
+bike_return_error=[]
+bike_return_error_st=[]
+for proportion in  propotion_of_bike_list:
+    s='simdata_ebike(1)_higher_rate/simdata_ebike/propotion_of_ebike_'+str(proportion)+'.csv'
+    a= pd.read_csv(s)
+    b=list(a.ebike_return_error+a.lost_demand+a.out_of_battery)[15:]
+    average_five_week  = []
+    for i in range(7):
+        average_five_week.append(sum(b[(5*i):(5*i+5)])/5)
+    mean, error=mean_confidence_interval(average_five_week)
+    bike_return_error.append(mean)
+    bike_return_error_st.append(error)
+plt.errorbar(propotion_of_bike_list,bike_return_error,yerr=bike_return_error_st,ecolor='red', c='orange',capsize=3)    
+plt.xlabel('initial ratio of ebikes to edocks')
+plt.ylabel('number of out-of-event')
+plt.title('number of out-of-events VS number of ebikes\n all demands are ebikes')
+
+
+
+plt.savefig('simdata/demand loss rate (bike)',dpi = 300,bbox_inches='tight')
 
 
 propotion_of_bike_list=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] 
@@ -104,35 +176,3 @@ plt.title('number of out-of-events (return error, lost demand, out-of-battery) \
 plt.savefig('number of out-of-event VS number of bikes',dpi = 300,bbox_inches='tight')
 
 
-
-
-
-# width of the bars
-barWidth = 0.3
-
-# Choose the height of the blue bars
-bars1 = [10, 9, 2]
-
-# Choose the height of the cyan bars
-bars2 = [10.8, 9.5, 4.5]
-
-# Choose the height of the error bars (bars1)
-yer1 = [2, 0.4, 0.5]
-
-# Choose the height of the error bars (bars2)
-yer2 = [1, 0.7, 1]
-
-# The x position of bars
-r1 = np.arange(len(bars1))
-r2 = [x + barWidth for x in r1]
-
-# Create blue bars
-
-
-# Create cyan bars
-plt.errorbar(r2, bars2, width = barWidth, color = 'cyan', edgecolor = 'black', yerr=yer2, capsize=7, label='sorgho')
-
-# general layout
-plt.xticks([r + barWidth for r in range(len(bars1))], ['cond_A', 'cond_B', 'cond_C'])
-plt.ylabel('height')
-plt.legend()

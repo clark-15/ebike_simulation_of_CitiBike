@@ -99,7 +99,7 @@ class GlobalClock(object):
     records the simulation
     '''
     #  minimum interval time : 0.4608848028037159
-    demand_rate=0.4608848028037159
+    demand_rate=0.4608848028037159*0.8
     # thinning method, it can be time-varying
     #lambda_rate = 0.16930832461285625
     def __init__(self, start_time,end_time, initial_stations):
