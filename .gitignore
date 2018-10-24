@@ -104,7 +104,6 @@ venv.bak/
 .mypy_cache/
 data/alltrips.csv
 *.png
-*.csv
 *.zip
 data/alltrips.csv
 stations_20weeks.pickle
