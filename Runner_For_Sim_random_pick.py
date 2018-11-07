@@ -2,9 +2,6 @@
 Runner for Sim_random_pick
 '''
 
-
-
-
 import Sim_random_pick
 from datetime import timedelta as td
 from datetime import datetime as time
