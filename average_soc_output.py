@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 '''
 module to define the useful data structures in bike-sharing simulation
+Based on Sim_random_pick.py
 '''
 
 
@@ -16,7 +19,7 @@ All the demand are ebike demands.
 
 3. If all the bikes in the stations are out-of-battery, the demand will lost.
 
-
+4. output the average SOC every 10 minutes
 '''
 
 import heapq
@@ -138,9 +141,6 @@ class GlobalClock(object):
     #lambda_rate = 0.16930832461285625
     def __init__(self, start_time,end_time, initial_stations):
 
-        np.random.seed(1)
-        random.seed(1)
-        
         self.start_time = start_time
         self.end_time=end_time
         self.t = start_time
@@ -182,7 +182,7 @@ class GlobalClock(object):
 
                 
         self.weeks={}
-        for i in range(100):
+        for i in range(300):
             self.weeks[i]=False
         
         
@@ -229,8 +229,8 @@ class GlobalClock(object):
             #print(self.t)
             #print('day:',(self.t- self.start_time).days)
             #print('week: ',self.week)
-            if (self.t- self.start_time).days % 7==0:
-                self.week = ((self.t- self.start_time).days // 7)
+            if (self.t- self.start_time).seconds % 600 < 60:
+                self.week = ((self.t- self.start_time).seconds // 600 + ((self.t- self.start_time).days)*24*6)
                 if self.weeks[self.week]==False:
                     #print((self.t- self.start_time).days)
                     print(self.t,self.week)
@@ -266,6 +266,10 @@ class GlobalClock(object):
                 return_generate(self,next_event)
                 
             
+        
+        
+        
+
 
 
 def Origin_generate(globalclock):

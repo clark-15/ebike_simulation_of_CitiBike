@@ -16,7 +16,11 @@ All the demand are ebike demands.
 
 3. If all the bikes in the stations are out-of-battery, the demand will lost.
 
+4. keep tract of the dest of out-of-battery trip to select e-station
 
+5. set the common random seed
+
+6. delete the unused stations, from 823 t0 751
 '''
 
 import heapq
@@ -33,8 +37,8 @@ for i in range(24):
         travel_matrix[i,j]=eval(open(('matrix_data/dest_matrix_'+str(i)+'_'+str(j)+'.txt')).read())
         lambda_rate=eval(open(('matrix_data/demand_ratio.txt')).read())
 
-closest=eval(open(('closest_bike_station.txt')).read())
-station_rankby_dist=eval(open(('data/station_rankby_dist.txt')).read())
+closest=eval(open(('closest_bike_station_751.txt')).read())
+station_rankby_dist=eval(open(('data/station_rankby_dist_751.txt')).read())
 
 import csv
 bst={}
@@ -43,7 +47,6 @@ with open('data/bike_pair_traveltime_3000_for_NA.csv') as f:
     next(reader)
     for row in reader:
         bst[int(row[0]),int(row[1])]=float(row[2])
-        
         
 
 class Event(object):
@@ -106,6 +109,8 @@ class Station(object):
         self.edock = edock
         self.num_of_charging = num_of_charging
 
+        self.dest_out_of_battery = 0
+        
         self.tripsOut = 0
         self.tripsIn = 0
         self.tripsFailedOut = 0
@@ -127,6 +132,7 @@ class Station(object):
         self.week_tripsFailedOut_Battery [0] = 0
         self.week_tripsFailedOut_DestinationFull [0] = 0
 
+
 class GlobalClock(object):
 
     '''
@@ -136,10 +142,10 @@ class GlobalClock(object):
     demand_rate=0.4608848028037159
     # thinning method, it can be time-varying
     #lambda_rate = 0.16930832461285625
-    def __init__(self, start_time,end_time, initial_stations):
+    def __init__(self, start_time,end_time, initial_stations,random_seed = 1):
 
-        np.random.seed(1)
-        random.seed(1)
+        np.random.seed(random_seed)
+        random.seed(random_seed)
         
         self.start_time = start_time
         self.end_time=end_time
@@ -170,7 +176,7 @@ class GlobalClock(object):
         self.week_average_SOC = {}
         self.threshold = 30
         self.charge_rate=0.009259259
-        self.energy_per_second=0.01984127
+        self.energy_per_second=0.01111111
         self.out_of_battery = 0
         self.week_num_etrip={}
         self.week_num_etrip[0]=0
@@ -179,12 +185,10 @@ class GlobalClock(object):
         self.week_num_alltrip[0]=0
         self.week_average_SOC[0]=100
         self.week_demandlost_causedby_battery[0]=0
-
                 
         self.weeks={}
         for i in range(100):
             self.weeks[i]=False
-        
         
         for i in initial_stations.keys():
             bikelist={}
@@ -234,6 +238,9 @@ class GlobalClock(object):
                 if self.weeks[self.week]==False:
                     #print((self.t- self.start_time).days)
                     print(self.t,self.week)
+                    np.random.seed(self.week)
+                    random.seed(self.week)
+                    
                     self.week_demandlost[self.week+1]=self.demandlost-sum(self.week_demandlost.values())
                     self.week_three_trip_error[self.week+1]=self.three_trip_error-sum(self.week_three_trip_error.values())
                     self.week_bike_return_full[self.week+1]=self.bike_return_full-sum(self.week_bike_return_full.values())
@@ -256,16 +263,12 @@ class GlobalClock(object):
                         self.stations[sta].week_tripsFailedIn[self.week+1] = self.stations[sta].tripsFailedIn - sum(self.stations[sta].week_tripsFailedIn.values())
                         self.stations[sta].week_tripsFailedOut_Battery[self.week+1] = self.stations[sta].tripsFailedOut_Battery - sum(self.stations[sta].week_tripsFailedOut_Battery.values())
                         self.stations[sta].week_tripsFailedOut_DestinationFull[self.week+1] = self.stations[sta].tripsFailedOut_DestinationFull - sum(self.stations[sta].week_tripsFailedOut_DestinationFull.values())
-                        
-        
             
             if next_event.code ==0: # means start
                 trip_generate(self,next_event)
                 Origin_generate(self,)
             elif next_event.code ==1: # means end
                 return_generate(self,next_event)
-                
-            
 
 
 def Origin_generate(globalclock):
@@ -282,9 +285,7 @@ def Origin_generate(globalclock):
             origin=int(np.random.choice(list(allocation[start_t.hour,week_day].keys()),1,True,list(allocation[start_t.hour,week_day].values())))
             event=Event(Event.START,start_t,origin)
             heapq.heappush(gc.heap,event)
-                
-       
-            
+
             
 def trip_generate(globalclock,next_event):
     stationid=next_event.station
@@ -318,7 +319,7 @@ def trip_generate(globalclock,next_event):
         gc.stations[stationid].tripsFailedOut_DestinationFull += 1
         
     else:
-        selectrange=min(5,len(gc.stations[stationid].ebike))
+        selectrange=len(gc.stations[stationid].ebike)
         selectset=random.sample(set(gc.stations[stationid].ebike.keys()),selectrange)
         max_SOC=-1
         for ebike_id in selectset:
@@ -395,12 +396,12 @@ def return_generate(globalclock,next_event):
     stationid=next_event.station
     ebikeid=next_event.ebikeid
     return_ebike(gc,ebikeid,stationid)
-    
-
-
 
 def return_ebike(globalclock,ebikeid,stationid):
     gc=globalclock
+    # can return it here
+    if gc.bikes[ebikeid].SOC == 0:
+            gc.stations[stationid].dest_out_of_battery += 1
     if len(gc.stations[stationid].ebike) < gc.stations[stationid].ebike_cap :
         gc.stations[stationid].ebike[ebikeid]=gc.bikes[ebikeid]
         #gc.bikes[ebikeid].SOC=100
@@ -408,11 +409,15 @@ def return_ebike(globalclock,ebikeid,stationid):
         gc.stations[stationid].tripsIn += 1
         gc.bikes[ebikeid].trip_times=0
         
+      
+        
+        # return it to e-docks
         if gc.stations[stationid].num_of_charging < gc.stations[stationid].edock:
             gc.bikes[ebikeid].charging = True
             gc.stations[stationid].num_of_charging += 1
             gc.bikes[ebikeid].lastchargetime=gc.t
             gc.bikes[ebikeid].last_chargeSOC=gc.bikes[ebikeid].SOC
+
     else:
         gc.ebike_return_full += 1
         gc.stations[stationid].tripsFailedIn += 1
@@ -427,9 +432,10 @@ def return_ebike(globalclock,ebikeid,stationid):
             gc.stations[dest].ebike[ebikeid]=gc.bikes[ebikeid]
             #gc.bikes[ebikeid].SOC=100
             
+            
             gc.stations[dest].tripsIn += 1
             gc.bikes[ebikeid].trip_times=0
-            
+
             if gc.stations[dest].num_of_charging < gc.stations[dest].edock:
                 gc.bikes[ebikeid].charging = True
                 gc.stations[dest].num_of_charging += 1

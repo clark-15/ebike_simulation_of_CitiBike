@@ -3,6 +3,7 @@
 Runner for distributed policy
 """
 
+
 import Sim_random_pick
 from datetime import timedelta as td
 from datetime import datetime as time
@@ -28,7 +29,7 @@ for bikestation in initial_stations.keys():
     
 
 
-total_edock_ratio_list = [0,0.05,0.1,0.2,0.3,0.4,0.5,1]
+total_edock_ratio_list = [0.1,0.2,0.25,0.3,0.4]
 num_ebike = 0.4
 
 

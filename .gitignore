@@ -112,3 +112,13 @@ data/alltrips.csv
 data/alltrips.csv
 data/alltrips.csv
 *.csv
+data/steady_states_p/.DS_Store
+data/steady_states_p/stations_initial_0.1.txt
+data/steady_states_p/stations_initial_0.2.txt
+data/steady_states_p/stations_initial_0.3.txt
+data/steady_states_p/stations_initial_0.4.txt
+data/steady_states_p/stations_initial_0.5.txt
+data/steady_states_p/stations_initial_0.6.txt
+data/steady_states_p/stations_initial_0.7.txt
+data/steady_states_p/stations_initial_0.8.txt
+data/steady_states_p/stations_initial_0.9.txt

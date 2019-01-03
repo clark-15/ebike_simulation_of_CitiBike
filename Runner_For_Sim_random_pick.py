@@ -6,7 +6,7 @@ import Sim_random_pick
 from datetime import timedelta as td
 from datetime import datetime as time
 start_time = time(2017,7,1,hour= 18)
-end_time=start_time+ td(weeks=20)
+end_time=start_time+ td(days=1)
 initial_stations=eval(open(("stations_initial.txt")).read())
 for bikestation in initial_stations.keys():
     initial_stations[bikestation]['ecap']= initial_stations[bikestation]['cap']
@@ -25,6 +25,7 @@ for station in initial_stations.keys():
 gc=Sim_random_pick.GlobalClock(start_time,end_time,initial_stations)
 
 gc.clockAdvance()
+print(gc.demandlost,gc.ebike_return_full,gc.out_of_battery)
 
 with open('stations.csv','w') as f:
     f.write('stationid,tripsin,tripsout,tripsfailedin,tripsfailedout,tripsfailedout_battery,trips_failedout_destinationfull,station_capacity\n')
